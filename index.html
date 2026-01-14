@@ -141,13 +141,27 @@ button:disabled {
   <div id="resultado"></div>
 
 </div>
-
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzPdQSjlxYMIrB24yqmqDxylzWEte2vtMtYAh6WjGHAn8NUXkCUzubR5MP7Pp0fwwSJ/exec";
+
+// tempo de cache em ms (ex: 24h)
+const CACHE_TIME = 24 * 60 * 60 * 1000;
 
 document.addEventListener("DOMContentLoaded", carregarFiltros);
 
 function carregarFiltros() {
+  const cache = localStorage.getItem("rota_filtros");
+  const cacheTime = localStorage.getItem("rota_filtros_time");
+
+  if (cache && cacheTime && (Date.now() - cacheTime < CACHE_TIME)) {
+    // ✅ usa cache
+    const dados = JSON.parse(cache);
+    preencherSelect("locado", dados.locados);
+    preencherSelect("linha", dados.linhas);
+    return;
+  }
+
+  // ⏳ primeira vez (ou cache expirado)
   fetch(API_URL)
     .then(res => res.json())
     .then(dados => {
@@ -155,6 +169,11 @@ function carregarFiltros() {
         alert(dados.erro);
         return;
       }
+
+      // salva cache
+      localStorage.setItem("rota_filtros", JSON.stringify(dados));
+      localStorage.setItem("rota_filtros_time", Date.now());
+
       preencherSelect("locado", dados.locados);
       preencherSelect("linha", dados.linhas);
     })
@@ -163,12 +182,16 @@ function carregarFiltros() {
 
 function preencherSelect(id, lista) {
   const select = document.getElementById(id);
-  lista.sort().forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    select.appendChild(opt);
-  });
+
+  lista
+    .slice()
+    .sort((a, b) => a.localeCompare(b, "pt-BR"))
+    .forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      select.appendChild(opt);
+    });
 }
 
 function buscar() {
@@ -221,6 +244,7 @@ function buscar() {
   });
 }
 </script>
+
 
 </body>
 </html>
