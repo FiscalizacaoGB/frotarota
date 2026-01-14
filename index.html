@@ -7,11 +7,22 @@
 <title>Consulta de Frota - ROTA</title>
 
 <style>
+/* ===============================
+   PALETA ROTA – ROSA LILÁS
+================================ */
+:root {
+  --principal: #c65aa7;
+  --principal-hover: #a94b8e;
+  --claro: #f7eef4;
+  --texto: #3f2b3a;
+}
+
 body {
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background: var(--claro);
   margin: 0;
   padding: 0;
+  color: var(--texto);
 }
 
 /* HEADER */
@@ -21,13 +32,13 @@ header {
   align-items: center;
   background: #ffffff;
   padding: 12px 16px;
-  border-bottom: 4px solid #c4161c;
+  border-bottom: 4px solid var(--principal);
 }
 
 header h1 {
   font-size: 18px;
   margin: 0;
-  color: #c4161c;
+  color: var(--principal);
 }
 
 header img {
@@ -50,13 +61,15 @@ input[type="number"] {
   padding: 12px;
   margin-bottom: 12px;
   font-size: 15px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
 }
 
 /* BOTÃO */
 button {
   width: 100%;
   padding: 12px;
-  background: #c4161c;
+  background: var(--principal);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -65,20 +78,20 @@ button {
 }
 
 button:hover {
-  background: #a01317;
+  background: var(--principal-hover);
 }
 
 button:disabled {
-  background: #fca5a5;
+  background: #e9b7d8;
   cursor: not-allowed;
 }
 
 /* RESULTADO */
 #resultado {
   margin-top: 20px;
-  background: #f9fafb;
+  background: #faf7f9;
   padding: 15px;
-  border-left: 4px solid #c4161c;
+  border-left: 4px solid var(--principal);
   border-radius: 8px;
   font-size: 15px;
   white-space: normal;
@@ -90,7 +103,7 @@ button:disabled {
   display: none;
   margin-top: 15px;
   text-align: center;
-  color: #c4161c;
+  color: var(--principal);
   font-weight: bold;
 }
 
@@ -107,7 +120,7 @@ button:disabled {
 
 <header>
   <h1>Consulta de Frota</h1>
-  <img src="logorota.png" alt="ROTA Transportes">
+  <img src="./logorota.png" alt="ROTA Transportes">
 </header>
 
 <div class="container">
@@ -130,7 +143,7 @@ button:disabled {
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzHD3m9clb9X0j2SGpuMjPWu5FA1qH5QwlaIpFkMnp3h68XFfD--6rANJfXxewm3gcm/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxNHSAYrLlvJC2IMSxsvw3VFPcmtBL_XitjlGMpDIHU7sSxVnZ1MUPjgG3THI9Qw7fi/exec";
 
 document.addEventListener("DOMContentLoaded", carregarFiltros);
 
@@ -138,14 +151,19 @@ function carregarFiltros() {
   fetch(API_URL)
     .then(res => res.json())
     .then(dados => {
+      if (dados.erro) {
+        alert(dados.erro);
+        return;
+      }
       preencherSelect("locado", dados.locados);
       preencherSelect("linha", dados.linhas);
-    });
+    })
+    .catch(() => alert("Erro ao carregar filtros"));
 }
 
 function preencherSelect(id, lista) {
   const select = document.getElementById(id);
-  lista.forEach(item => {
+  lista.sort().forEach(item => {
     const opt = document.createElement("option");
     opt.value = item;
     opt.textContent = item;
@@ -184,9 +202,9 @@ function buscar() {
     let html = "";
     dados.forEach(v => {
       html += `
-        <strong>Nº Ordem:</strong> ${v.ordem}<br>
+        <strong>Nº de Ordem:</strong> ${v.ordem}<br>
         <strong>Locado:</strong> ${v.locado}<br>
-        <strong>Linha:</strong> ${v.linha}<br>
+        <strong>Linha / Itinerário:</strong> ${v.linha}<br>
         <strong>Categoria:</strong> ${v.categoria}<br>
         <strong>PL:</strong> ${v.pl}<br>
         <strong>Descrição PL:</strong> ${v.descpl}<br>
