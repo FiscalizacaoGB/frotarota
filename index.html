@@ -143,25 +143,20 @@ button:disabled {
 </div>
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzPdQSjlxYMIrB24yqmqDxylzWEte2vtMtYAh6WjGHAn8NUXkCUzubR5MP7Pp0fwwSJ/exec";
-
-// tempo de cache em ms (ex: 24h)
 const CACHE_TIME = 24 * 60 * 60 * 1000;
 
 document.addEventListener("DOMContentLoaded", carregarFiltros);
 
 function carregarFiltros() {
   const cache = localStorage.getItem("rota_filtros");
-  const cacheTime = localStorage.getItem("rota_filtros_time");
+  const cacheTime = Number(localStorage.getItem("rota_filtros_time"));
 
   if (cache && cacheTime && (Date.now() - cacheTime < CACHE_TIME)) {
-    // ✅ usa cache
     const dados = JSON.parse(cache);
-    preencherSelect("locado", dados.locados);
-    preencherSelect("linha", dados.linhas);
+    aplicarFiltros(dados);
     return;
   }
 
-  // ⏳ primeira vez (ou cache expirado)
   fetch(API_URL)
     .then(res => res.json())
     .then(dados => {
@@ -170,18 +165,24 @@ function carregarFiltros() {
         return;
       }
 
-      // salva cache
       localStorage.setItem("rota_filtros", JSON.stringify(dados));
       localStorage.setItem("rota_filtros_time", Date.now());
 
-      preencherSelect("locado", dados.locados);
-      preencherSelect("linha", dados.linhas);
+      aplicarFiltros(dados);
     })
     .catch(() => alert("Erro ao carregar filtros"));
 }
 
+function aplicarFiltros(dados) {
+  preencherSelect("locado", dados.locados);
+  preencherSelect("linha", dados.linhas);
+}
+
 function preencherSelect(id, lista) {
   const select = document.getElementById(id);
+
+  // 🔥 evita recriação desnecessária
+  if (select.options.length > 1) return;
 
   lista
     .slice()
@@ -222,20 +223,15 @@ function buscar() {
       return;
     }
 
-    let html = "";
-    dados.forEach(v => {
-      html += `
-        <strong>Nº de Ordem:</strong> ${v.ordem}<br>
-        <strong>Locado:</strong> ${v.locado}<br>
-        <strong>Linha / Itinerário:</strong> ${v.linha}<br>
-        <strong>Categoria:</strong> ${v.categoria}<br>
-        <strong>PL:</strong> ${v.pl}<br>
-        <strong>Descrição PL:</strong> ${v.descpl}<br>
-        <hr>
-      `;
-    });
-
-    resultado.innerHTML = html;
+    resultado.innerHTML = dados.map(v => `
+      <strong>Nº de Ordem:</strong> ${v.ordem}<br>
+      <strong>Locado:</strong> ${v.locado}<br>
+      <strong>Linha / Itinerário:</strong> ${v.linha}<br>
+      <strong>Categoria:</strong> ${v.categoria}<br>
+      <strong>PL:</strong> ${v.pl}<br>
+      <strong>Descrição PL:</strong> ${v.descpl}<br>
+      <hr>
+    `).join("");
   })
   .catch(() => {
     loading.style.display = "none";
